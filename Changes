@@ -22,3 +22,16 @@ Revision history for Perl extension HTML::HTMLDoc.
 0.06  Die Apr 29 13:51:51 CEST 2003
 	- fix of bug that let content appear twice in target-document (thanks Rajat Bhatia)
 	- licence-stuff added to pod
+
+0.07  Don Mai 29 20:04:44 CEST 2003
+	- extended internal structure for structure for storing parameters
+	- extended permission-features, multiple permissions possible now
+	- some intelligence implemented dealing with permissions
+	- extended pod
+	- implemented methods for setting header and footer
+	- test suite added. Most methods testet
+	- better color-method with possibility of hex- rgb- or named color-input
+	- bug in switching between landscape and portrait fixed (Keith W. Sheffield, Christoffer Landtman)
+	- turn link processing on/off (Keith W. Sheffield)
+	- use files for input instead of scalar (Keith W. Sheffield)
+	- set the default font size - set_fontsize addes (Keith W. Sheffield)
