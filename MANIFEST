@@ -1,0 +1,8 @@
+Changes
+lib/HTML/HTMLDoc.pm
+lib/HTML/HTMLDoc/PDF.pm
+Makefile.PL
+MANIFEST
+README
+test.pl
+test_htmldoc.PL

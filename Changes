@@ -1,0 +1,20 @@
+Revision history for Perl extension HTML::HTMLDoc.
+
+0.01  Wed Apr 16 19:14:31 2003
+	- original version; created by h2xs 1.21 with options
+		-AX -n HTML::HTMLDoc
+
+0.02  Apr 17 16:02:20 CEST 2003
+	- added most of the htmldoc-parameters as methods
+	- generation of the PDF-Document
+
+0.03  Apr 20 15:35:41 CEST 2003
+	- changing the call of htmldoc to IPC::Open3
+
+0.04  Mit Apr 23 16:05:55 CEST 2003
+	- bug in mod-perl env. regarding IPC::Open3. Fixed with a new method using filemode
+
+0.05  Mon Apr 28 14:24:03 CEST 2003
+	- updated documentation
+	- updated pod
+	- added checking for installed htmldoc in makefiles
