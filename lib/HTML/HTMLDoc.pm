@@ -9,7 +9,7 @@ use HTML::HTMLDoc::PDF;
 use vars qw(@ISA $VERSION);
 
 @ISA = qw();
-$VERSION = '0.05';
+$VERSION = '0.06';
 my $DEBUG = 0;
 
 ###############
@@ -595,7 +595,7 @@ sub generate_pdf {
 	if ($self->{'config'}->{'mode'} eq 'ipc') {
 		# we are in normale Mode, use IPC
 		my ($pid, $error);
-    	($pid,$pdf,$error) = $self->_run("htmldoc  $params --webpage -", $self->get_html_content() . $self->get_html_content());
+    	($pid,$pdf,$error) = $self->_run("htmldoc  $params --webpage -", $self->get_html_content());
 	} else {
 		# we are in file-mode
 		my $filename = $self->_prepare_input_file();
@@ -997,6 +997,13 @@ None by default.
 =head1 AUTHOR
 
 Michael Frankl - mfrankl@seibert-media.de
+
+
+=head1 COPYRIGHT AND LICENCE
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself
+
 
 =head1 SEE ALSO
 
