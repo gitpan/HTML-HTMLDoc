@@ -6,7 +6,7 @@
 # change 'tests => 1' to 'tests => last_test_to_print';
 
 use Test;
-BEGIN { plan tests => 110 };
+BEGIN { plan tests => 114 };
 use strict;
 use lib 'lib';
 use HTML::HTMLDoc;
@@ -280,24 +280,35 @@ ok(1); # If we made it this far, we're ok.
 	ok($htmldoc->links(), 1);
 	ok($htmldoc->_get_doc_config('links'), '');
 	ok($htmldoc->_get_doc_config('no-links'), undef);
-	
+
 	# turn links off
 	ok($htmldoc->no_links(), 1);
 	ok($htmldoc->_get_doc_config('no-links'), '');
 	ok($htmldoc->_get_doc_config('links'), undef);
-	
+
 	# set path for documents
 	ok($htmldoc->path('/tmp'), 1);
 	ok($htmldoc->_get_doc_config('path'), '/tmp');
-	
+
 	# set fontsize
 	ok($htmldoc->set_fontsize(2), 1);
 	ok($htmldoc->_get_doc_config('fontsize'), 2);
 	ok($htmldoc->set_fontsize(2.5), 1);
 	ok($htmldoc->_get_doc_config('fontsize'), 2.5);
 	ok($htmldoc->set_fontsize("x"), 0);
+    
 	
+	# set a logoimage
+	$htmldoc = new HTML::HTMLDoc();
+	my $setimage = $htmldoc->set_logoimage('./testdata/missingimage.gif');
+	ok($setimage, 0);
+	ok($htmldoc->error(), "Logoimage ./testdata/missingimage.gif could not be found");
+                                                                     
+	my $logoimg = './testdata/testimage.gif';
+	my $setimage = $htmldoc->set_logoimage($logoimg);
+	ok($setimage, 1);
 
+	ok($htmldoc->get_logoimage(), $logoimg);
 
 }
 

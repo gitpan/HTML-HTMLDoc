@@ -4,5 +4,7 @@ lib/HTML/HTMLDoc/PDF.pm
 Makefile.PL
 MANIFEST
 README
+TODO
 test.pl
 test_htmldoc.PL
+testdata/testimage.gif

@@ -9,7 +9,7 @@ use HTML::HTMLDoc::PDF;
 use vars qw(@ISA $VERSION);
 
 @ISA = qw();
-$VERSION = '0.07';
+$VERSION = '0.08';
 my $DEBUG = 0;
 
 ###############
@@ -49,7 +49,7 @@ sub _init {
 		$self->{'config'}->{'tmpdir'} = '/tmp';
 	}
 
-	$self->{'erros'} = [];
+	$self->{'errors'} = [];
 	$self->{'doc_config'} = {};
 
 	$self->set_page_size('a4');
@@ -639,6 +639,35 @@ sub set_bodyimage {
 }
 
 ###############
+# takes an image-filename that is used as logoimage
+# param: image:STRING
+# return: 1/0
+###############
+sub set_logoimage {
+	my $self = shift;
+	my $image = shift;
+
+	if ( ! -f "$image" ) {
+		$self->error("Logoimage $image could not be found");
+		return 0;
+	}
+
+	$self->_set_doc_config('logoimage', $image);
+	return 1;
+}
+
+###############
+# gives back a previous set logo-image
+# param: -
+# return: image:STRING
+###############
+sub get_logoimage {
+	my $self = shift;
+	return $self->_get_doc_config('logoimage');
+}
+
+
+###############
 # set the witdh in px for the background image
 # param: width:INT
 # return: 1/0
@@ -996,7 +1025,7 @@ sub _run {
 		print STDERR "\n********************************************************************\n";
 	}
 
-     return($pid,$output,$error);
+	return($pid,$output,$error);
 }
 
 
@@ -1238,6 +1267,20 @@ Sets the default font size for the body text.
 Sets the background image for the document. $image is the path to the image in your filesystem.
 
 
+=head2 set_logoimage($image)
+
+Sets the logo-image for the document. $image is the path to the image in your filesystem. The supported formats are BMP, GIF, JPEG, and PNG.
+Remember to specify the 'l'-option somewhere in header or footer using set_header() or/and set_footer().
+
+$htmldoc-E<gt>set_logoimage('mylogo.gif');
+$htmldoc-E<gt>set_header('.', 'l', '.');
+
+
+=head2 get_logoimage()
+
+reads out a previous set logo-image. You will get the filename to the image.
+
+
 =head2 set_browserwidth($width)
 
 specifies the browser width in pixels. The browser width is used to scale images and pixel measurements when generating PostScript and PDF files. It does not affect the font size of text.
@@ -1477,7 +1520,7 @@ None by default.
 
 =head1 AUTHOR
 
-Michael Frankl - mfrankl@seibert-media.de
+Michael Frankl - mfrankl at seibert-media.de
 
 
 =head1 COPYRIGHT AND LICENCE
@@ -1496,8 +1539,17 @@ Keith W. Sheffield
 
 Christoffer Landtman
 
+Aleksey Serba
+
 
 for suggestions and bug fixes.
+
+
+=head1 BUGS
+
+Please use the following URL to report any bugs or missing functions.
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=HTML%3A%3AHTMLDoc>
 
 
 =head1 SEE ALSO

@@ -35,3 +35,8 @@ Revision history for Perl extension HTML::HTMLDoc.
 	- turn link processing on/off (Keith W. Sheffield)
 	- use files for input instead of scalar (Keith W. Sheffield)
 	- set the default font size - set_fontsize addes (Keith W. Sheffield)
+        
+0.08  Sun Jun  6 21:45:45 CEST 2004
+	- Bugfix in error-Handling while generating PDF (patch from Aleksey Serba)
+	- added set_logoimage() and get_logoimage() dealing with images for the header/footer.
+	  Added Tests for this.
