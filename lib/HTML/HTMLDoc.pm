@@ -9,7 +9,7 @@ use HTML::HTMLDoc::PDF;
 use vars qw(@ISA $VERSION);
 
 @ISA = qw();
-$VERSION = '0.08';
+$VERSION = '0.09';
 my $DEBUG = 0;
 
 ###############
@@ -303,7 +303,7 @@ sub set_permissions {
 }
 
 ###############
-# sets the pages to landscape
+# sets the pages to portrait
 # testet
 # param: -
 # return: 1/0
@@ -317,7 +317,7 @@ sub landscape {
 }
 
 ###############
-# sets the pages to landscape
+# sets the pages to portrait
 # testet
 # param: -
 # return: 1/0
@@ -388,7 +388,7 @@ sub set_footer {
 }
 
 ###############
-# sets the footer
+# sets the header
 # testet
 # param: left:CHAR, center:CHAR, right:CHAR
 # return: 1/0
@@ -471,7 +471,7 @@ sub set_right_margin {
 }
 
 ###############
-# sets the right margin
+# sets the left margin
 # testet
 # param: margin|NUM, messure:in,cm,mm
 # return: 1/0
@@ -496,7 +496,7 @@ sub set_bottom_margin {
 }
 
 ###############
-# sets the right margin
+# sets the top margin
 # param: margin|NUM, messure:in,cm,mm
 # return: 1/0
 ###############
@@ -515,7 +515,7 @@ sub _set_margin {
 	my $m = shift;
 
 	# test the values
-	if ( $margin!~/^\d+$/ || ( ($m ne 'in') && ($m ne 'cm') && ($m ne 'mm') )) {
+	if ( $margin!~/^\d*\.?\d+$/ || ( ($m ne 'in') && ($m ne 'cm') && ($m ne 'mm') )) {
 		$self->error("wrong arguments for $where-margin: $margin $m");
 		return 0;
 	}
@@ -657,7 +657,7 @@ sub set_logoimage {
 }
 
 ###############
-# gives back a previous set logo-image
+# returns a previous set logo-image
 # param: -
 # return: image:STRING
 ###############
@@ -736,6 +736,7 @@ sub set_charset {
 ###############
 sub embed_fonts {
 	my $self = shift;
+	$self->_delete_doc_config('no-embedfonts');
 	$self->_set_doc_config('embedfonts', '');
 	return 1;
 }
@@ -749,6 +750,7 @@ sub embed_fonts {
 sub no_embed_fonts {
 	my $self = shift;
 	$self->_delete_doc_config('embedfonts');
+	$self->_set_doc_config('no-embedfonts', '');
 	return 1;
 }
 
@@ -766,7 +768,7 @@ sub color_on {
 }
 
 ###############
-# turns colors on in doc
+# turns colors off in doc
 # param:
 # return: 1/0
 ###############
@@ -779,7 +781,7 @@ sub color_off {
 }
 
 ###############
-# turns encryption on
+# turns encryption off
 # param: -
 # return: 1/0
 ###############
@@ -792,7 +794,7 @@ sub enable_encryption {
 }
 
 ###############
-# turns encryption on
+# turns encryption off
 # param: -
 # return: 1/0
 ###############
@@ -944,6 +946,10 @@ sub _cleanup {
 sub generate_pdf {
 	my $self = shift;
 
+	# save the env-var for restoring it later
+	my $old_htmldoc_env = $ENV{'HTMLDOC_NOCGI'};
+	$ENV{'HTMLDOC_NOCGI'} = 'yes';
+
 	my $params = $self->_build_parameters();
 	my $pdf;
 
@@ -959,9 +965,16 @@ sub generate_pdf {
 		$pdf = `htmldoc  $params --webpage $filename`;
     	$self->_cleanup();
 	}
+	
+	# restore old value 
+	if (not defined $old_htmldoc_env) {
+		delete $ENV{'HTMLDOC_NOCGI'};
+	} else {
+		$ENV{'HTMLDOC_NOCGI'} = $old_htmldoc_env;
+	}
 
 	my $doc = new HTML::HTMLDoc::PDF(\$pdf);
-
+	
 	return $doc;
 }
 
@@ -984,10 +997,15 @@ sub _build_parameters {
 				$paramstring .= " --$key $single_v";
 			}
 		} else {
-			$paramstring .= " --$key $value";
+			if ($key eq 'compression') {
+				$paramstring .= " --$key=$value";
+			} else {
+				$paramstring .= " --$key $value";
+			}
 		}
 
 	}
+	
 	return $paramstring;
 }
 
@@ -1074,7 +1092,8 @@ HTML::HTMLDoc - Perl interface to the htmldoc program for producing PDF-Files fr
 
 =head1 DESCRIPTION
 
-This Module provides an OO-interface to the htmldoc programm.
+This Module provides an OO-interface to the htmldoc programm. To install this module you
+have to install the htmldoc program first. You can get it from http://www.htmldoc.org .
 
 You can use it to produce PDF or PS files from a HTML-document. Currently many but not all
 parameters of HTMLDoc are supported.
@@ -1090,7 +1109,6 @@ be captured. For this problem this module provides a fix doing the communication
 
 For this you can specify the parameter mode in the constructor:
 my $htmldoc = new HTMLDoc('mode'=>'file', 'tmpdir'=>'/tmp');
-
 
 
 
@@ -1388,7 +1406,7 @@ to use a present file from your filesystem for input
 
 =head2 get_html_content()
 
-gives back the previous set html-content.
+returns the previous set html-content.
 
 
 =head2 set_input_file($input_filename)
@@ -1399,7 +1417,7 @@ operational mode to 'file'.
 
 =head2 get_input_file()
 
-gives back the previous set input file name.
+returns the previous set input file name.
 
 
 =head2 set_header($left, $center, $right)
@@ -1520,7 +1538,7 @@ None by default.
 
 =head1 AUTHOR
 
-Michael Frankl - mfrankl at seibert-media.de
+Michael Frankl - mfrankl at    seibert-media.de
 
 
 =head1 COPYRIGHT AND LICENCE
@@ -1540,6 +1558,10 @@ Keith W. Sheffield
 Christoffer Landtman
 
 Aleksey Serba
+
+Helen Hamster
+
+Najib
 
 
 for suggestions and bug fixes.

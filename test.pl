@@ -6,7 +6,7 @@
 # change 'tests => 1' to 'tests => last_test_to_print';
 
 use Test;
-BEGIN { plan tests => 114 };
+BEGIN { plan tests => 116 };
 use strict;
 use lib 'lib';
 use HTML::HTMLDoc;
@@ -156,6 +156,11 @@ ok(1); # If we made it this far, we're ok.
 	my $ret = $htmldoc->set_right_margin(2);
 	ok($ret, 1);
 	ok($htmldoc->_get_doc_config('right'), '2cm' );
+	
+	# test 26, 27 - right margin without messure
+	my $ret = $htmldoc->set_right_margin(2.1);
+	ok($ret, 1);
+	ok($htmldoc->_get_doc_config('right'), '2.1cm' );
 
 	# test 28,29 - right margin mm
 	my $ret = $htmldoc->set_right_margin(2, 'mm');

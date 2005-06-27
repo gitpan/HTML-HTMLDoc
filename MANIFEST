@@ -8,3 +8,4 @@ TODO
 test.pl
 test_htmldoc.PL
 testdata/testimage.gif
+META.yml                                 Module meta-data (added by MakeMaker)

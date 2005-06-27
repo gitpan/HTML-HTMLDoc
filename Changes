@@ -40,3 +40,10 @@ Revision history for Perl extension HTML::HTMLDoc.
 	- Bugfix in error-Handling while generating PDF (patch from Aleksey Serba)
 	- added set_logoimage() and get_logoimage() dealing with images for the header/footer.
 	  Added Tests for this.
+	  
+0.09  01.03.2005 00:15
+	- Fixed problems caused by new HTMLDOC 1.8.24
+	- Set Env-Var HTMLDOC_NOCGI true before calling htmldoc (Najib)
+	- fixed comments (Helen Hamster)
+	- fixed compression-bug (Helen Hamster)
+	- fixed embedding fonts (Helen Hamster)
