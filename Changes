@@ -47,3 +47,9 @@ Revision history for Perl extension HTML::HTMLDoc.
 	- fixed comments (Helen Hamster)
 	- fixed compression-bug (Helen Hamster)
 	- fixed embedding fonts (Helen Hamster)
+	
+0.10  2005-10-26
+	- Added support for jpeg-compression
+	- new section FAQ in POD
+	
+	

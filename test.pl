@@ -6,7 +6,7 @@
 # change 'tests => 1' to 'tests => last_test_to_print';
 
 use Test;
-BEGIN { plan tests => 116 };
+BEGIN { plan tests => 121 };
 use strict;
 use lib 'lib';
 use HTML::HTMLDoc;
@@ -79,6 +79,22 @@ ok(1); # If we made it this far, we're ok.
 
 	# clean up permissions
 	$htmldoc->_delete_doc_config('permissions');
+
+	# test  - JPEG-quality
+	$htmldoc->set_jpeg_compression();
+	ok($htmldoc->_get_doc_config('jpeg'), "75");
+	$htmldoc->set_jpeg_compression(0);
+	ok($htmldoc->_get_doc_config('jpeg'), 0);
+	$htmldoc->set_jpeg_compression(100);
+	ok($htmldoc->_get_doc_config('jpeg'), 100);
+	
+	$htmldoc->_delete_doc_config('jpeg');
+	$htmldoc->best_image_quality();
+	ok($htmldoc->_get_doc_config('jpeg'), 100);
+	
+	$htmldoc->_delete_doc_config('jpeg');
+	$htmldoc->low_image_quality();
+	ok($htmldoc->_get_doc_config('jpeg'), 25);
 
 	# test 17 - permissions - nos
 	my $okcounter = 0;

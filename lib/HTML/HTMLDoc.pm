@@ -9,7 +9,7 @@ use HTML::HTMLDoc::PDF;
 use vars qw(@ISA $VERSION);
 
 @ISA = qw();
-$VERSION = '0.09';
+$VERSION = '0.10';
 my $DEBUG = 0;
 
 ###############
@@ -697,6 +697,38 @@ sub set_compression {
 }
 
 ###############
+# sets the JPEG-Kompression
+# param: 0-100 (default 50)
+# return: 1/0
+###############
+sub set_jpeg_compression {
+	my $self = shift;
+	my $comp = shift;
+	$comp = 75 if (not defined $comp);
+	return $self->_set_doc_config('jpeg', $comp);
+}
+
+###############
+# sets the JPEG-Kompression value to the highest quality
+# param: -
+# return: 1/0
+###############
+sub best_image_quality {
+	my $self = shift;
+	return $self->set_jpeg_compression(100);
+}
+
+###############
+# sets the JPEG-Kompression value to the highest quality
+# param: -
+# return: 1/0
+###############
+sub low_image_quality {
+	my $self = shift;
+	return $self->set_jpeg_compression(25);
+}
+
+###############
 # sets the pagemode
 # param: mode:[document,outline,fullscreen]
 # return: 1/0
@@ -997,7 +1029,7 @@ sub _build_parameters {
 				$paramstring .= " --$key $single_v";
 			}
 		} else {
-			if ($key eq 'compression') {
+			if ($key eq 'compression' || $key eq 'jpeg') {
 				$paramstring .= " --$key=$value";
 			} else {
 				$paramstring .= " --$key $value";
@@ -1219,7 +1251,11 @@ turns the links off.
 
 =head2 path()
 
-specify the search path for files in a document
+specify the search path for files in a document. Use this method if your images are not shown.
+
+Example:
+
+$htmldoc->path("/home/foo/www/myimages/");
 
 
 =head2 landscape()
@@ -1311,6 +1347,29 @@ The default browser width is 680 pixels which corresponds roughly to a 96 DPI di
 specifies that Flate compression should be performed on the output file. The optional level parameter is a number from 1 (fastest and least amount of compression) to 9 (slowest and most amount of compression).
 
 This option is only available when generating Level 3 PostScript or PDF files.
+
+
+=head2 set_jpeg_compression($quality)
+
+$quality is a value between 1 and 100. Defaults to 75.
+
+Sets the quality of the images in the PDF. Low values result in poor image quality but also in low file sizes for the PDF. High values result in good image quality but also in high file sizes.
+You can also use methods best_image_quality() or low_image_quality(). For normal usage, including photos or similar a value of
+75 should be ok. For high quality results use 100. If you want to reduce file size you have to play with the value to find a
+compromise between quality and size that fits your needs.
+
+
+=head2 best_image_quality()
+
+Set the jpg-image quality to the maximum value. Call this method if you want to produce high quality PDF-Files. Note that this could produce huge file sizes
+depending on how many images you include and how big they are. See set_jpeg_compression(100).
+
+
+=head2 low_image_quality()
+
+Set the jpg-image quality to a low value (25%). Call this method if you have many or huge images like photos in your PDF and you do not want exploding file sizes for your
+resulting document. Note that calling this method could result in poor image quality. If you want some more control see method set_jpeg_compression() which allows you to
+set the value of the compression to other values than 25%.
 
 
 =head2 set_pagemode($mode)
@@ -1565,6 +1624,38 @@ Najib
 
 
 for suggestions and bug fixes.
+
+
+=head1 FAQ
+
+=item * Q: Where are the images that I specified in my HTML-Code?
+
+A: The images that you want to include have to be found by the process that is generating your PDF (that is
+using this Module). If you call the images relatively in your html-code like:
+<img src="test.gif"> or <img src="./myimages/test.gif">
+make sure that your perl program can find them. Note that a perl program can change the working
+directory internal (See perl -f chdir). You can find out the working directory using:
+
+use Cwd;
+print Cwd::abs_path(Cwd::cwd);
+
+The module provides a method path($p). Use this if you want to specify where the images you want to use
+can be found. Example:
+
+$htmldoc->path("/home/foo/www/myimages/");
+
+
+=item * Q: How can I do a page break?
+
+A: You can include a HTML-Comment that will do a page break for you at the point it is located:
+<!-- PAGE BREAK -->
+
+=item * Q: The Module works in shell but not with mod_perl
+
+
+A: Use htmldoc in file-Mode:
+
+my $htmldoc = new HTMLDoc('mode'=>'file', 'tmpdir'=>'/tmp');
 
 
 =head1 BUGS
