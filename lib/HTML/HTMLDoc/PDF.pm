@@ -7,7 +7,7 @@ use IO::File;
 use vars qw(@ISA $VERSION);
 
 @ISA = qw();
-$VERSION = '0.09';
+$VERSION = '0.11_01';
 
 ###############
 # create a new Object
@@ -51,7 +51,9 @@ sub to_file {
 	if (!$file) {
 		return 0;
 	}
-	print $file ${$self->{'content'}};
+	local($/) = undef;
+	$file->binmode();
+	$file->print( ${$self->{'content'}} );
 	$file->close();
 	return 1;
 }

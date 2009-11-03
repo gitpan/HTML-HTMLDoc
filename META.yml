@@ -1,11 +1,14 @@
-# http://module-build.sourceforge.net/META-spec.html
-#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
-name:         HTML-HTMLDoc
-version:      0.10
-version_from: lib/HTML/HTMLDoc.pm
-installdirs:  site
-requires:
+--- #YAML:1.0
+name:                HTML-HTMLDoc
+version:             0.11_01
+abstract:            Perl interface to the htmldoc program for producing PDF-Files from HTML-Content
+license:             ~
+generated_by:        ExtUtils::MakeMaker version 6.36
+distribution_type:   module
+requires:     
     IPC::Open3:                    
-
-distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.17
+meta-spec:
+    url:     http://module-build.sourceforge.net/META-spec-v1.2.html
+    version: 1.2
+author:
+    - Michael Frankl <mfrankl@seibert-media.net>

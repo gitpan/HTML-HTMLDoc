@@ -3,6 +3,7 @@ lib/HTML/HTMLDoc.pm
 lib/HTML/HTMLDoc/PDF.pm
 Makefile.PL
 MANIFEST
+MANIFEST.SKIP
 README
 TODO
 test.pl

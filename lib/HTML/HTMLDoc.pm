@@ -6,11 +6,14 @@ use warnings;
 use IO::File;
 use IPC::Open3 qw();
 use HTML::HTMLDoc::PDF;
+use File::Temp;
 use vars qw(@ISA $VERSION);
 
+use constant Win32_MODE => $^O =~ /os2|Win32/i;
+use constant DEBUG => 0;
+
 @ISA = qw();
-$VERSION = '0.10';
-my $DEBUG = 0;
+$VERSION = '0.11_01';
 
 ###############
 # create a new Object
@@ -41,6 +44,9 @@ sub new {
 sub _init {
 	my $self = shift;
 
+    # Switch the default to file on Windows env
+    $self->{'config'}->{'mode'} = 'file' if(!$self->{'config'}->{'mode'} && Win32_MODE);
+    
 	if ((not defined $self->{'config'}->{'mode'}) || ($self->{'config'}->{'mode'} ne 'file' && $self->{'config'}->{'mode'} ne 'ipc')) {
 		$self->{'config'}->{'mode'} = 'ipc';
 	}
@@ -48,6 +54,12 @@ sub _init {
 	if ( (!$self->{'config'}->{'tmpdir'}) || (!-d $self->{'config'}->{'tmpdir'})) {
 		$self->{'config'}->{'tmpdir'} = '/tmp';
 	}
+
+    if ( defined($self->{'config'}->{'bindir'}) ) {
+         $self->{'config'}->{'bindir'} .= "/" if ( $self->{'config'}->{'bindir'} !~ /\/$/ );
+    } else {
+        $self->{'config'}->{'bindir'} = '';
+    }
 
 	$self->{'errors'} = [];
 	$self->{'doc_config'} = {};
@@ -161,7 +173,7 @@ sub _get_doc_config_keys {
 	my $self = shift;
 
 	my @keys = keys %{$self->{'doc_config'}};
-	print STDERR "Keys: @keys\n" if $DEBUG;
+	print STDERR "Keys: @keys\n" if DEBUG;
 	return @keys;
 }
 
@@ -639,6 +651,35 @@ sub set_bodyimage {
 }
 
 ###############
+# Defines a directory where the htmldoc executable is searching for its
+# data-documents. For unix-based systems the default is /usr/share/htmldoc
+# param: dir:STRING
+# return: 1/0
+###############
+sub set_htmldoc_datadir {
+    my $self = shift;
+    my $dir = shift;
+
+    if ( ! -d "$dir" ) {
+        $self->error("Datadirectory $dir does not exist");
+        return 0;
+    }
+
+    $self->_set_doc_config('datadir', $dir);
+    return 1;
+}
+
+###############
+# reads out the directory where htmldoc shall search for images and other data files
+# param: dir:STRING
+# return: 1/0
+###############
+sub get_htmldoc_datadir {
+    my ($self) = @_;
+    return $self->_set_get_config('datadir');
+}
+
+###############
 # takes an image-filename that is used as logoimage
 # param: image:STRING
 # return: 1/0
@@ -683,6 +724,32 @@ sub set_browserwidth {
 
 	$self->_set_doc_config('browserwidth', $width);
 	return 1;
+}
+
+###############
+# set the size for head and foot in points
+# param: size:points
+# return: 1/0
+###############
+sub set_headfootsize {
+  my ($self, $points) = @_;
+  if ($points !~ /^\d+$/) {
+     $self->error("wrong headfootsize $points set");
+     return 0;
+  }
+
+  $self->_set_doc_config('headfootsize', $points);
+  return 1;
+}
+
+###############
+# get the size of head and foot
+# param: 
+# return: :points 
+###############
+sub get_headfootsize {
+  my ($self, $points) = @_;
+  return $self->_get_doc_config('headfootsize', $points);
 }
 
 ###############
@@ -795,7 +862,7 @@ sub color_on {
 	my $self = shift;
 
 	$self->_set_doc_config('color', '');
-	$self->_delete_doc_config('grey', '');
+	$self->_delete_doc_config('gray', '');
 	return 1;
 }
 
@@ -807,7 +874,7 @@ sub color_on {
 sub color_off {
 	my $self = shift;
 
-	$self->_set_doc_config('grey', '');
+	$self->_set_doc_config('gray', '');
 	$self->_delete_doc_config('color', '');
 	return 1;
 }
@@ -935,28 +1002,16 @@ sub _prepare_input_file {
 	my $filename;
 	return $filename if (defined ($filename = $self->{'input_file'}));
 
-	while($i<1000) {
-		my $randpart = int(rand(1000));
-		$filename = $self->{'config'}->{'tmpdir'} . "/htmldoc$randpart.html";
-
-		if (-f $filename) {
-			$i++;
-			next;
-		} else {
-			last;
-		}
-	}
-
-	my $file = new IO::File($filename, 'w');
+	my $file = new File::Temp(UNLINK => 0);
 	if (!$file) {
 		warn "could not open tempfile $!";
 		return undef;
 	}
 	$file->print($self->get_html_content());
-	$file->close();
-	$self->{'config'}->{'tmpfile'} = $filename;
+	$file->seek(0, SEEK_SET);
+	#$self->{'config'}->{'tmpfile'} = $filename;
 
-	return $filename;
+	return $file;
 }
 
 ###############
@@ -989,12 +1044,28 @@ sub generate_pdf {
 	if ($self->_config('mode') eq 'ipc') {
 		# we are in normale Mode, use IPC
 		my ($pid, $error);
-    	($pid,$pdf,$error) = $self->_run("htmldoc  $params --webpage -", $self->get_html_content());
+     	($pid,$pdf,$error) = $self->_run("$self->{'config'}->{'bindir'}htmldoc  $params --webpage -", $self->get_html_content());
 	} else {
 		# we are in file-mode
-		my $filename = $self->_prepare_input_file();
-		return undef if (!$filename);
-		$pdf = `htmldoc  $params --webpage $filename`;
+		my $file = $self->_prepare_input_file();
+		return undef if (!$file);
+		my $filename = $file->filename;
+		if (DEBUG) {
+		  print STDERR "$self->{'config'}->{'bindir'}htmldoc $params --webpage $filename"; 
+		}
+		my $fh = IO::File->new( "$self->{'config'}->{'bindir'}htmldoc $params --webpage $filename |" );
+      if ( $fh ) {
+        local($/) = undef;
+        $fh->binmode;
+        $pdf = <$fh>; 
+        $fh->close;
+      }
+      else {
+        warn "Failed to render PDF\n";
+        $pdf = '';
+        }
+	
+# 		$pdf = `$self->{'config'}->{'bindir'}htmldoc  $params --webpage $filename`;
     	$self->_cleanup();
 	}
 	
@@ -1066,7 +1137,7 @@ sub _run {
 	wait();
 
 
-	if ($DEBUG) {
+	if (DEBUG) {
 		print STDERR "\n********************************************************************\n";
 		print STDERR "COMMAND : \n$command [PID $pid]\n";
 		print STDERR "STDIN  :  \n$input\n";
@@ -1153,6 +1224,7 @@ creates a new Instance of HTML::HTMLDoc.
 Optional parameters are:
 mode=>['file'|'ipc'] defaults to ipc
 tmpdir=>$dir defaults to /tmp
+bindir=>$dir Directory to locate the htmldoc-executable. Usable if you can not influence the system path.
 
 The tmpdir is used for temporary html-files in filemode. Remember to set the file-permissions
 to write for the executing process.
@@ -1258,6 +1330,13 @@ Example:
 $htmldoc->path("/home/foo/www/myimages/");
 
 
+=head2 set_htmldoc_datadir($dir)
+
+specify where the htmldoc-executable is searching for its data-files. On Unix-based systems the default is
+/usr/share/htmldoc. Please note that this setting changes a htmldoc-internal and has no influence on 
+path to images you want to use. See the path()-method for that. 
+
+
 =head2 landscape()
 
 sets the format of the resulting pages to landscape
@@ -1314,6 +1393,16 @@ Arial Courier Helvetica Monospace Sans-Serif Serif Symbol Times
 =head2 set_fontsize($fsize)
 
 Sets the default font size for the body text.
+
+
+=head2 set_headfootsize($points)
+
+Sets the size for the fonts in head and foot areas. Value is points (1 point = 1/72nd inch).
+
+
+=head2 get_headfootsize()
+
+Reads out the size for the fonts in head and foot areas. Value is points (1 point = 1/72nd inch).
 
 
 =head2 set_bodyimage($image)
@@ -1655,7 +1744,7 @@ A: You can include a HTML-Comment that will do a page break for you at the point
 
 A: Use htmldoc in file-Mode:
 
-my $htmldoc = new HTMLDoc('mode'=>'file', 'tmpdir'=>'/tmp');
+my $htmldoc = new HTML::HTMLDoc('mode'=>'file', 'tmpdir'=>'/tmp');
 
 
 =head1 BUGS

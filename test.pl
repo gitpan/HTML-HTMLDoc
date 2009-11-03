@@ -6,7 +6,7 @@
 # change 'tests => 1' to 'tests => last_test_to_print';
 
 use Test;
-BEGIN { plan tests => 121 };
+BEGIN { plan tests => 128 };
 use strict;
 use lib 'lib';
 use HTML::HTMLDoc;
@@ -301,6 +301,19 @@ ok(1); # If we made it this far, we're ok.
 	ok($htmldoc->links(), 1);
 	ok($htmldoc->_get_doc_config('links'), '');
 	ok($htmldoc->_get_doc_config('no-links'), undef);
+	
+	ok($htmldoc->color_off());
+	ok($htmldoc->_get_doc_config('gray'), '');
+	ok($htmldoc->_get_doc_config('color'), undef);
+	
+	ok($htmldoc->color_on());
+    ok($htmldoc->_get_doc_config('color'), '');
+    ok($htmldoc->_get_doc_config('gray'), undef);
+    
+    ok($htmldoc->set_headfootsize(10));
+    ok($htmldoc->_get_doc_config('headfootsize'), 10);
+    ok($htmldoc->get_headfootsize(), 10);
+    
 
 	# turn links off
 	ok($htmldoc->no_links(), 1);
@@ -317,8 +330,7 @@ ok(1); # If we made it this far, we're ok.
 	ok($htmldoc->set_fontsize(2.5), 1);
 	ok($htmldoc->_get_doc_config('fontsize'), 2.5);
 	ok($htmldoc->set_fontsize("x"), 0);
-    
-	
+    	
 	# set a logoimage
 	$htmldoc = new HTML::HTMLDoc();
 	my $setimage = $htmldoc->set_logoimage('./testdata/missingimage.gif');
@@ -330,6 +342,10 @@ ok(1); # If we made it this far, we're ok.
 	ok($setimage, 1);
 
 	ok($htmldoc->get_logoimage(), $logoimg);
+	
+	# bindir
+    $htmldoc = new HTML::HTMLDoc(bindir=>'/home');
+    $htmldoc->generate_pdf;
 
 }
 
@@ -419,6 +435,13 @@ ok(1); # If we made it this far, we're ok.
 	ok(substr($pdf->to_string(),0,100), qr|\Q<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"\E| );
 	ok($pdf->to_string(), qr|\Qlkjlkjlkj\E| );
 
+	my $htmldoc = new HTML::HTMLDoc();
+	$htmldoc->set_output_format('html');
+	$htmldoc->set_html_content('<html><body><img src="http://www.frankl.info/images/htmldoc-cd.jpg"></body></html>');
+	my $pdf = $htmldoc->generate_pdf();
+	ok(ref($pdf), 'HTML::HTMLDoc::PDF');
+	#ok(substr($pdf->to_string(),0,100), qr|\Q<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"\E| );
+	#ok($pdf->to_string(), qr|\Qlkjlkjlkj\E| );
 
 
 	# test the generation of pdf in Apache-File-Mode
@@ -427,6 +450,18 @@ ok(1); # If we made it this far, we're ok.
 	my $pdf = $htmldoc->generate_pdf();
 	ok(ref($pdf), 'HTML::HTMLDoc::PDF');
 	ok(substr($pdf->to_string(),0,10), qr/^\Q%PDF-1.3\E/ );
+	
+
+}
+
+# these tests are not executed by default in the testsuite, they help the Testing in Developement Prozess
+sub test_writefile {
+  my $htmldoc = new HTML::HTMLDoc(mode=>'file');
+  $htmldoc->set_headfootsize(10);
+  $htmldoc->_set_doc_config('firstpage', 'toc');
+  $htmldoc->set_html_content('<html><body><h1>lkjlkjlkj</h1><!-- PAGE BREAK --><h1>sfdsdfsdfdsf</h1></body></html>');
+  my $pdf = $htmldoc->generate_pdf();
+  $pdf->to_file('testfile.pdf');
 }
 
 # look up for a key in an array

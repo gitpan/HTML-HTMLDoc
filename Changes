@@ -52,4 +52,11 @@ Revision history for Perl extension HTML::HTMLDoc.
 	- Added support for jpeg-compression
 	- new section FAQ in POD
 	
+0.11  2009-11-03
+    - Fixing error in greyscale-output
+    - New Methods for setting headfootsize
+    - On Windows Systems default-behavior is now to operate in file mode
+    - Fixed bug with line delimiters while writing pdf-files
+    - Path to htmldoc-executable can be defined in constructor
+     
 	
